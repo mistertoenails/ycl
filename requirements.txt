@@ -1,0 +1,4 @@
+colorama==0.4.6
+eyed3==0.9.7
+moviepy==1.0.3
+pytube==12.1.3
