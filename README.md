@@ -17,24 +17,66 @@ python ycl.py <subcommand> <flags>
 
 # Subcommands and flags
 
-| Subcommand | Description | Flags 
-|--|--|--|    
-|download  | Download a youtube <br>video from the given URL |&nbsp;--url: video URL <br> --filetype: video filetype, mp3/mp4  |
-|playlist| Download a youtube  playlist from the <br>given URL | &nbsp; --url, --filetype, <br> &nbsp; --max-num: Only download the first <i>n</i> videos from the playlist|
-|clean|Remove all files from the downloads<br> directory this script downloads videos to| None
-|help|Displays a list of subcommands|None
+```
+SUBCOMMANDS:
+
+SUBCOMMAND   USAGE
+------------------------------------------------
+download:    Download a youtube video from a URL.
+playlist:    Download a youtube playlist.
+clean:       Empty the directory this script downloads videos to.
+help:        Show a list of subcommands
+search:      Search for a given query instead of downloading a URL.
 
 
+DOWNLOAD:
 
-## Example commands
+FLAG         USAGE
+------------------------------------------------------------
+--url:       The URL to download from. 
+--filetype:  The filetype to download videos as. mp3 or mp4.
+-------------------------------------------------------------
 
-#### Download a youtube video
+
+PLAYLIST:
+
+FLAG         USAGE
+------------------------------------------------------------
+--url:       The playlist URL.
+--filetype:  The filetype to download videos as. mp3 or mp4.
+--max-num:   The maximum number of videos to download.
+------------------------------------------------------------
+
+
+SEARCH:
+
+FLAG           USAGE
+---------------------------------------------------------------------
+--query:         Search query to use
+--filtype:       The filetype to download videos as. mp3 or mp4.
+--first:         Don't ask for a selection, download first result.
+--display-num:   The number of search results to display. Default 10.
+---------------------------------------------------------------------
+
+
+HELP:
+
+FLAG         USAGE
+------------------------------------------------------------
+no flags yet
+------------------------------------------------------------
+
+
+CLEAN:
+
+FLAG         USAGE
+------------------------------------------------------------
+no flags yet
+------------------------------------------------------------
+
 
 ```
-python ycl.py download --url=https://www.youtube.com/watch?v=dQw4w9WgXcQ --filetype=mp4
-```
+## Notes
+- If the url and filetype (or query and filetype) flags aren't provided, you will be prompted for them.
 
-#### Download a playlist
-```
-python ycl.py playlist --url=https://www.youtube.com/playlist?list=PLFuNbp0NQ1D9ZMiyspdMS2hLtliqk9hVn --filetype=mp4
-```
+
