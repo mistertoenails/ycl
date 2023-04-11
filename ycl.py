@@ -1,24 +1,17 @@
 import os
 from pytube import YouTube
 from pytube import Playlist
+from pytube import Search
 from moviepy.editor import *
 import urllib.request
-
 import eyed3
 import time
 import colorama
 import sys
 import shutil
-
 from eyed3.id3.frames import ImageFrame
 import string
-def str_bool(str):
-  if str.lower() == "false":
-    return False
-  elif str.lower() == "true":
-    return True
-  else: 
-    return "err"
+
 
 def parseFlags(list, args):
   returnlist = {}
@@ -30,6 +23,9 @@ def parseFlags(list, args):
         returnlist[arg] = item[len(arg) + 1:]
         #Append the object to be returned with a key-value pair of the argument name and the provided value
         foundmatch = True
+      elif item == arg:
+        foundmatch = True
+        returnlist[arg] = True
     if not foundmatch:
       #If no match is found, an invalid argument was given
       print(
@@ -67,43 +63,6 @@ subcommands = [{
   "Arguments": "--url, --filetype, --max-num"
 }]
 DOWNLOAD_DIR = 'downloads'
-
-
-def print_table(data):
-  # Get keys of the data
-  headers = list(data[0].keys())
-
-
-  # Use longest header/value length to calculate width
-  col_widths = {}
-  for header in headers:
-    col_widths[header] = max(len(str(header)),
-                             max(len(str(item[header])) for item in data))
-
-  # Print top line
-  print(
-    f'+{"+".join(["-" * (col_widths[header] + 2) for header in headers])}+')
-
-  # Print column headers
-  for header in headers:
-    print(f'| {header:{col_widths[header]}} ', end='')
-  print('|')
-
-  # Print divider
-  for header in headers:
-    print(f'+{"-" * (col_widths[header] + 2)}', end='')
-  print('+')
-
-  # Print data
-  for item in data:
-    for header in headers:
-      print(f'| {str(item[header]):{col_widths[header]}} ', end='')
-    print('|')
-
-    # Print row separator
-    for header in headers:
-      print(f'+{"-" * (col_widths[header] + 2)}', end='')
-    print('+')
 
 
 def sanitize(s):
@@ -144,8 +103,7 @@ def download_youtube_video(url):
   yt = YouTube(url)
 
   #Get the youtube video as a stream and download it
-  stream = yt.streams.filter(
-    file_extension='mp4').first() 
+  stream = yt.streams.filter(file_extension='mp4').first()
   output_path = os.path.join(os.getcwd(), 'downloads')
 
   #Make the downloads directory if it doesn't exist
@@ -153,7 +111,7 @@ def download_youtube_video(url):
     os.makedirs(output_path)
   stream.download(output_path=output_path)
 
- 
+
 def download_youtube_audio(url,
                            verbose=True,
                            audio_codec='mp3',
@@ -222,8 +180,6 @@ def download_youtube_audio(url,
   return audio_file_name
 
 
-
-
 # Logo stored as a multiline string, with some spacing fuckery
 BOX_WIDTH = 55
 BOX_HEIGHT = 12
@@ -240,14 +196,16 @@ ____________________________________
                                                     
       +---------------------------------------+      
       |  The youtube command line downloader  |      
-      +---------------------------------------+    
+     +---------------------------------------+    
 
-      One file, open source, no ads, no bullshit
+    One file, open source, no ads, no bullshit
       
                                                     
 """
+
+
 #Print the logo from the multi-line string
-def print_logo(): 
+def print_logo():
   print(f'{colorama.Fore.BLUE}_' + '_' * (BOX_WIDTH + 3) + '_')
   print(f'{colorama.Fore.BLUE}+' + '-' * (BOX_WIDTH + 3) + '+')
   for line in logo.split('\n'):
@@ -259,11 +217,12 @@ def print_logo():
       padding = ' ' * ((BOX_WIDTH - len(line)) // 2)
       line = padding + line + padding
     print(
-    f'||{colorama.Fore.RED}{" "}{line}{colorama.Fore.BLUE}{" "*(BOX_WIDTH-len(line))}||'
-  )
+      f'||{colorama.Fore.RED}{" "}{line}{colorama.Fore.BLUE}{" "*(BOX_WIDTH-len(line))}||'
+    )
   print(f'{colorama.Fore.BLUE}||' + '_' * (BOX_WIDTH + 1) + '||')
   print('+' + '-' * (BOX_WIDTH + 3) + '+')
   print("\n\n")
+
 
 #Subcommand funtions
 def download_subcommand(args):
@@ -304,10 +263,80 @@ def download_subcommand(args):
       f"Finished downloading youtube video to absolute path '{colorama.Fore.BLUE}{os.path.abspath(download_youtube_audio(url))}{colorama.Fore.RED}'"
     )
 
+
 def help_subcommand(args):
-  #I'm usually not a 'code is its own documentation' kinda guy, but seriously
-  print_table(subcommands)
+  print(f"""
   
+{colorama.Fore.BLUE}SUBCOMMANDS:{colorama.Fore.RED}
+
+SUBCOMMAND   USAGE
+{colorama.Fore.BLUE}-------------------------------------------------{colorama.Fore.RED}
+{colorama.Fore.BLUE}download:{colorama.Fore.RED}    Download a youtube video from a URL.
+{colorama.Fore.BLUE}playlist:{colorama.Fore.RED}    Download a youtube playlist.
+{colorama.Fore.BLUE}clean:{colorama.Fore.RED}       Empty the directory this script downloads videos to.
+{colorama.Fore.BLUE}help:{colorama.Fore.RED}        Show a list of subcommands
+{colorama.Fore.BLUE}search:{colorama.Fore.RED}      Search for a given query instead of downloading a URL.
+{colorama.Fore.BLUE}-------------------------------------------------{colorama.Fore.RED}
+
+
+
+
+{colorama.Fore.BLUE}DOWNLOAD:{colorama.Fore.RED}
+
+FLAG         USAGE
+{colorama.Fore.BLUE}------------------------------------------------------------{colorama.Fore.RED}
+{colorama.Fore.BLUE}--url:{colorama.Fore.RED}       The URL to download from. 
+{colorama.Fore.BLUE}--filetype:{colorama.Fore.RED}  The filetype to download videos as. mp3 or mp4.
+{colorama.Fore.BLUE}------------------------------------------------------------{colorama.Fore.RED}
+
+
+
+
+{colorama.Fore.BLUE}PLAYLIST:{colorama.Fore.RED}
+
+FLAG         USAGE
+{colorama.Fore.BLUE}------------------------------------------------------------{colorama.Fore.RED}
+{colorama.Fore.BLUE}--url:{colorama.Fore.RED}       The playlist URL.
+{colorama.Fore.BLUE}--filetype:{colorama.Fore.RED}  The filetype to download videos as. mp3 or mp4.
+{colorama.Fore.BLUE}--max-num:{colorama.Fore.RED}   The maximum number of videos to download.
+{colorama.Fore.BLUE}------------------------------------------------------------{colorama.Fore.RED}
+
+
+
+
+{colorama.Fore.BLUE}SEARCH:{colorama.Fore.RED}
+
+FLAG           USAGE
+{colorama.Fore.BLUE}---------------------------------------------------------------------{colorama.Fore.RED}
+{colorama.Fore.BLUE}--query:{colorama.Fore.RED}         Search query to use
+{colorama.Fore.BLUE}--filtype:{colorama.Fore.RED}       The filetype to download videos as. mp3 or mp4.
+{colorama.Fore.BLUE}--first:{colorama.Fore.RED}         Don't ask for a selection, download first result.
+{colorama.Fore.BLUE}--display-num:{colorama.Fore.RED}   The number of search results to display. Default 10.
+{colorama.Fore.BLUE}---------------------------------------------------------------------{colorama.Fore.RED}
+
+
+
+
+{colorama.Fore.BLUE}HELP:{colorama.Fore.RED}
+
+FLAG         USAGE
+{colorama.Fore.BLUE}------------------------------------------------------------{colorama.Fore.RED}
+{colorama.Fore.BLUE}no flags yet{colorama.Fore.RED}
+{colorama.Fore.BLUE}------------------------------------------------------------{colorama.Fore.RED}
+
+
+
+
+{colorama.Fore.BLUE}CLEAN:{colorama.Fore.RED}
+
+FLAG         USAGE
+{colorama.Fore.BLUE}------------------------------------------------------------{colorama.Fore.RED}
+{colorama.Fore.BLUE}no flags yet{colorama.Fore.RED}
+{colorama.Fore.BLUE}------------------------------------------------------------{colorama.Fore.RED}
+
+
+  """)
+
 
 def clean_subcommand(args):
   #Remove all files from the "downloads" directory the script creates
@@ -316,13 +345,11 @@ def clean_subcommand(args):
   os.mkdir("downloads")
   print(f"{colorama.Fore.BLUE}All done!")
 
+
 def playlist_subcommand(args):
   url = ''
   filetype = ''
-  maxNum = {
-    "isMax": False,
-    "maxNum": 0
-  }
+  maxNum = {"isMax": False, "maxNum": 0}
   try:
     maxNum["maxNum"] = int(args['--max-num'])
     maxNum["isMax"] = True
@@ -343,31 +370,35 @@ def playlist_subcommand(args):
   except:
     filetype = input(
       f"\n{colorama.Fore.BLUE}MP3 or MP4?  \n{colorama.Fore.RED} /> ")
-  try:  
+  try:
     playlist = Playlist(url)
   except:
     print("Invalid playlist URL. Exiting...")
     sys.exit()
 
+#Get a list of video URLs from the playlist
   video_urls = playlist.video_urls
 
+  #Some colorama bullshittery
   print(
     f"{colorama.Fore.BLUE}Parsed {len(video_urls)} URLS from playlist '{playlist.title}':\n"
   )
   for url in video_urls:
-    
-      
+
     print("[*]  " + url)
   print(
     f"{colorama.Fore.RED}Downloading videos from playlist '{colorama.Fore.BLUE}{playlist.title}{colorama.Fore.RED}'\n"
   )
+
   index = 0
+  #Loop through videos
   for video in video_urls:
-    
+    #Check if there's a max number of videos to be downloaded
     if maxNum["isMax"] and index == maxNum["maxNum"]:
       print(f"Downloaded {maxNum['maxNum']} videos. Finishing...")
       break
-    index+=1
+    index += 1
+    #Download the video, and some more colorama bullshittery
     yt = YouTube(video)
     print(yt)
     print(
@@ -376,6 +407,78 @@ def playlist_subcommand(args):
     print(
       f"Finished downloading video '{colorama.Fore.BLUE}{yt.title}{colorama.Fore.RED}'\n"
     )
+
+
+def search_subcommand(args):
+  #Get argument values
+  try:
+    display_num = args["--display-dum"]
+    try:
+      display_num = int(display_num)
+    except:
+      print("--display-num requires a valid integer. Exiting...")
+      sys.exit()
+    if display_num < 1 or display_num > 100:
+      print("--display-num must be between 1 and 100. Exiting...")
+      sys.exit()
+  except:
+    display_num = 10
+  try:
+    use_first = args["--first"]
+  except:
+    use_first = False
+  try:
+    query = args["--query"]
+  except:
+    query = input(
+      f"\n{colorama.Fore.BLUE}Enter search query  \n{colorama.Fore.RED} /> ")
+
+  #Search for query provided
+  results = Search(query)
+
+  #If the --use-first flag isn't used, loop through the videos with and prompt for a selection
+  if not use_first:
+    for result in results.results:
+      if results.results.index(result) == display_num:
+        break
+      print(f"""
+    {results.results.index(result) + 1}) Title:{colorama.Fore.RED} {result.title}{colorama.Fore.BLUE}
+       Channel: {colorama.Fore.RED}{result.author}{colorama.Fore.BLUE}
+       Date: {colorama.Fore.RED}{result.publish_date}{colorama.Fore.BLUE}
+    """)
+    video_index = input(
+      f"Which video would you like to download? (enter the video number)\n{colorama.Fore.RED} /> "
+    )
+    try:
+      video_index = int(video_index)
+      selected_video = results.results[video_index - 1]
+    except:
+      print(
+        "Please enter a valid number that corresponds to a search result. Quitting..."
+      )
+      sys.exit()
+
+    print(
+      f"Selected video: {colorama.Fore.BLUE}{selected_video.title}{colorama.Fore.RED}"
+    )
+  else:
+    #If the --use-first flag was used, don't display videos, but download the first search result.
+    selected_video = results.results[0]
+  try:
+    filetype = args["--filetype"]
+  #Get the filetype if it wasn't specified with a flag
+  except:
+    filetype = input(
+      f"\n{colorama.Fore.BLUE}MP3 or MP4?  \n{colorama.Fore.RED} /> ")
+  if filetype.lower() != "mp3" and filetype.lower() != "mp4":
+    print("Please enter either MP3 or MP4 as the filetype. Exiting...")
+    sys.exit()
+  if filetype.lower() == "mp3":
+    download_youtube_audio(selected_video.watch_url)
+  else:
+    download_youtube_video(selected_video.watch_url)
+
+
 #These are the subcommands that are actually used, the ones up top are just for displaying the 'help' command
 _subcommands = [{
   "name": "download",
@@ -393,7 +496,12 @@ _subcommands = [{
   "name": "playlist",
   "args": ["--url", "--filetype", "--max-num"],
   "function": playlist_subcommand
+}, {
+  "name": "search",
+  "args": ["--query", "--first", "--display-num", "--filetype"],
+  "function": search_subcommand
 }]
+
 
 #Parse the subcommand and flags from sys.argv
 def parseSubcommand(argList):
@@ -409,7 +517,9 @@ def parseSubcommand(argList):
       subcommand["function"](parseFlags(flagList, subcommand["args"]))
       break
   if not foundMatch:
-    print("Invalid subcommand. Run 'python ycl.py help' for a list of valid subcommands, or visit PLACEHOLDER_GITHUB_URL for more documentation.")
+    print(
+      "Invalid subcommand. Run 'python ycl.py help' for a list of valid subcommands, or visit https://github.com/mistertoenails/ycl for more documentation."
+    )
 
 
 parseSubcommand(sys.argv)
